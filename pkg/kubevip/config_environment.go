@@ -558,6 +558,12 @@ func ParseEnvironment(c *Config) error {
 		c.EnableNodeLabeling = b
 	}
 
+	// Find node label name
+	env = os.Getenv(NodeLabelName)
+	if env != "" {
+		c.NodeLabelName = env
+	}
+
 	// Find Prometheus configuration
 	env = os.Getenv(prometheusServer)
 	if env != "" {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -22,28 +23,33 @@ type patchStringLabel struct {
 	Value string `json:"value"`
 }
 
-// applyNodeLabel add/remove node label `kube-vip.io/has-ip=<VIP-Address>` to/from
+// EscapeJSONPointer escapes a string for use in JSON Patch paths.
+func EscapeJSONPointer(s string) string {
+	// Replace '~' with '~0' and '/' with '~1' according to JSON Pointer syntax.
+	return strings.ReplaceAll(strings.ReplaceAll(s, "~", "~0"), "/", "~1")
+}
+
+// applyNodeLabel add/remove node label `kube-vip.io/is-leader=true` to/from
 // the node where the virtual IP was added to/removed from.
-func applyNodeLabel(clientSet *kubernetes.Clientset, address, id, identity string) {
+func applyNodeLabel(clientSet *kubernetes.Clientset, label, id, identity string) {
 	ctx := context.Background()
 	node, err := clientSet.CoreV1().Nodes().Get(ctx, id, metav1.GetOptions{})
 	if err != nil {
 		log.Errorf("can't query node %s labels. error: %v", id, err)
 		return
 	}
-
 	log.Debugf("node %s labels: %+v", id, node.Labels)
 
-	value, ok := node.Labels[nodeLabelIndex]
-	path := fmt.Sprintf("/metadata/labels/%s", nodeLabelJSONPath)
-	if (!ok || value != address) && id == identity {
-		log.Debugf("setting node label `has-ip=%s` on %s", address, id)
+	_, ok := node.Labels[label]
+	path := fmt.Sprintf("/metadata/labels/%s", EscapeJSONPointer(label))
+	if (!ok) && id == identity {
+		log.Debugf("setting node label `%s=true` on %s", label, id)
 		// Append label
-		applyPatchLabels(ctx, clientSet, id, "add", path, address)
-	} else if ok && value == address {
-		log.Debugf("removing node label `has-ip=%s` on %s", address, id)
+		applyPatchLabels(ctx, clientSet, id, "add", path, "true")
+	} else if ok {
+		log.Debugf("removing node label `%s=true` on %s", label, id)
 		// Remove label
-		applyPatchLabels(ctx, clientSet, id, "remove", path, address)
+		applyPatchLabels(ctx, clientSet, id, "remove", path, "true")
 	} else {
 		log.Debugf("no node label change needed")
 	}

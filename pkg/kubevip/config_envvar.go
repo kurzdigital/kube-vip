@@ -193,6 +193,9 @@ const (
 	// EnableNodeLabeling, will enable node labeling as the node becomes leader
 	EnableNodeLabeling = "enable_node_labeling"
 
+	// EnableNodeLabeling, will enable node labeling as the node becomes leader
+	NodeLabelName = "node_label_name"
+
 	// prometheusServer defines the address prometheus listens on
 	prometheusServer = "prometheus_server"
 

@@ -312,6 +312,17 @@ func generatePodSpec(c *Config, imageVersion string, inCluster bool) *corev1.Pod
 		newEnvironment = append(newEnvironment, EnableNodeLabeling...)
 	}
 
+	// If we are setting node label name
+	if c.NodeLabelName != "" {
+		NodeLabelName := []corev1.EnvVar{
+			{
+				Name:  NodeLabelName,
+				Value: c.NodeLabelName,
+			},
+		}
+		newEnvironment = append(newEnvironment, NodeLabelName...)
+	}
+
 	// If we're specifying an annotation configuration
 	if c.Annotations != "" {
 		annotations := []corev1.EnvVar{

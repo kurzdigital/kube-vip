@@ -39,6 +39,9 @@ type Config struct {
 	// EnableNodeLabeling, will enable node labeling as it becomes leader
 	EnableNodeLabeling bool `yaml:"enableNodeLabeling"`
 
+	// NodeLabelName, sets the name of the node label
+	NodeLabelName string `yaml:"nodeLabelName"`
+
 	// LoadBalancerClassOnly, will enable load balancing only for services with LoadBalancerClass set to "kube-vip.io/kube-vip-class"
 	LoadBalancerClassOnly bool `yaml:"lbClassOnly"`
 
